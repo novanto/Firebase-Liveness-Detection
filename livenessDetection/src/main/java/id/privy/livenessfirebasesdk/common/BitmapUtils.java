@@ -8,6 +8,7 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera.CameraInfo;
 import android.support.annotation.Nullable;
+import android.util.Base64;
 import android.util.Log;
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
 
@@ -68,6 +69,23 @@ public class BitmapUtils {
             // Mirror the image along X axis for front-facing camera image.
             matrix.postScale(-1.0f, 1.0f);
             return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+        }
+    }
+
+    public static String composeToBase64(Bitmap bitmap) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+        return Base64.encodeToString(byteArray, Base64.DEFAULT);
+    }
+
+    public static Bitmap decodeFromBase64(String base64){
+        try {
+            byte[] imageAsBytes = Base64.decode(base64.getBytes(), Base64.DEFAULT);
+            Bitmap bitmap = BitmapFactory.decodeByteArray(imageAsBytes, 0, imageAsBytes.length);
+            return bitmap;
+        } catch (Exception e) {
+            return null;
         }
     }
 }

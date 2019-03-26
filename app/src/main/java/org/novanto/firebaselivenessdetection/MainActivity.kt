@@ -5,6 +5,7 @@ import android.os.Bundle
 import id.privy.livenessfirebasesdk.LivenessApp
 import id.privy.livenessfirebasesdk.entity.LivenessItem
 import id.privy.livenessfirebasesdk.listener.PrivyCameraLivenessCallBackListener
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -14,17 +15,21 @@ class MainActivity : AppCompatActivity() {
 
         val livenessApp = LivenessApp(this)
 
-        livenessApp.privyCameraLiveness(object : PrivyCameraLivenessCallBackListener {
+        buttonStart.setOnClickListener {
+            livenessApp.privyCameraLiveness(object : PrivyCameraLivenessCallBackListener {
 
-            override fun success(livenessItem: LivenessItem?) {
+                override fun success(livenessItem: LivenessItem?) {
+                    if (livenessItem != null) {
+                        test_image.setImageBitmap(livenessItem.imageBitmap)
+                    }
+                }
 
-            }
+                override fun failed(t: Throwable?) {
 
-            override fun failed(t: Throwable?) {
+                }
 
-            }
-
-        })
+            })
+        }
     }
 
 

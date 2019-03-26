@@ -2,6 +2,7 @@ package id.privy.livenessfirebasesdk;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import id.privy.livenessfirebasesdk.entity.LivenessItem;
 import id.privy.livenessfirebasesdk.listener.PrivyCameraLivenessCallBackListener;
 
@@ -21,12 +22,11 @@ public class LivenessApp {
         context.startActivity(i);
     }
 
-    public static void setDataCameraSelfi(String baseImage1,String baseImage2){
+    public static void setCameraResultData(Bitmap bitmap){
         if (callback != null) {
-            if(baseImage1!=null && baseImage2 != null){
+            if(bitmap != null){
                 LivenessItem livenessItem = new LivenessItem();
-                livenessItem.setBaseImage1(baseImage1);
-                livenessItem.setBaseImage2(baseImage2);
+                livenessItem.setImageBitmap(bitmap);
                 callback.success(livenessItem);
             }else{
                 callback.failed(new Throwable("ImageBase Not Found"));

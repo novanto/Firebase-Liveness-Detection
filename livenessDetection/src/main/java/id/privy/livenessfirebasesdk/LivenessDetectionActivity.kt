@@ -2,24 +2,24 @@ package id.privy.livenessfirebasesdk
 
 import android.Manifest
 import android.arch.lifecycle.Observer
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-
-import java.io.IOException
-import java.util.Random
-
-import id.privy.livenessfirebasesdk.common.CameraSource
-import id.privy.livenessfirebasesdk.common.CameraSourcePreview
-import id.privy.livenessfirebasesdk.common.GraphicOverlay
+import id.privy.livenessfirebasesdk.common.*
 import id.privy.livenessfirebasesdk.event.LivenessEventProvider
 import id.privy.livenessfirebasesdk.vision.VisionDetectionProcessor
-import android.support.v4.app.ActivityCompat
-import android.content.pm.PackageManager
-import android.support.v4.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_liveness_detection.*
+import java.io.IOException
+import java.util.Random
+import kotlin.collections.ArrayList
+
 
 class LivenessDetectionActivity : AppCompatActivity() {
 
@@ -51,11 +51,17 @@ class LivenessDetectionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_liveness_detection)
 
-        requestPermission()
-
-        randomizeChallenge()
         bindViews()
-        createCameraSource()
+
+        if (PermissionUtil.with(this).isCameraPermissionGranted) {
+            randomizeChallenge()
+            createCameraSource()
+            startNextChallenge()
+            resetCount()
+        }
+        else {
+            PermissionUtil.requestPermission(this, 1, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
+        }
 
         LivenessEventProvider.getEventLiveData().observe(this, Observer {
             it?.let {
@@ -79,6 +85,12 @@ class LivenessDetectionActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        randomizeChallenge()
+        createCameraSource()
         startNextChallenge()
         resetCount()
     }
@@ -124,6 +136,18 @@ class LivenessDetectionActivity : AppCompatActivity() {
         mouthOpenCount = 0
 
         errorContainer.visibility = View.GONE
+    }
+
+    fun navigateBack(success: Boolean, bitmap: Bitmap?) {
+        if (bitmap != null) {
+            if (success) {
+                LivenessApp.setCameraResultData(bitmap)
+                finish()
+            } else {
+                LivenessApp.setCameraResultData(null)
+                finish()
+            }
+        }
     }
 
 
@@ -179,8 +203,7 @@ class LivenessDetectionActivity : AppCompatActivity() {
     }
 
     private fun setRandomNumber() {
-        val ran = Random()
-        this.numberOfChallengeNeeded = ran.nextInt(3) + 2
+        this.numberOfChallengeNeeded = Random().nextInt(3) + 2
     }
 
     private fun setFixedNumber(number: Int) {
@@ -188,19 +211,18 @@ class LivenessDetectionActivity : AppCompatActivity() {
     }
 
     private fun startBlinkChallenge() {
-        challengeInstructions(LivenessEventProvider.LivenessEvent.Type.Blink)
-
         setRandomNumber()
+        challengeInstructions(LivenessEventProvider.LivenessEvent.Type.Blink)
     }
 
     private fun startHeadShakeChallenge() {
-        challengeInstructions(LivenessEventProvider.LivenessEvent.Type.HeadShake)
         setFixedNumber(2)
+        challengeInstructions(LivenessEventProvider.LivenessEvent.Type.HeadShake)
     }
 
     private fun startOpenMouthChallenge() {
-        challengeInstructions(LivenessEventProvider.LivenessEvent.Type.MouthOpen)
         setRandomNumber()
+        challengeInstructions(LivenessEventProvider.LivenessEvent.Type.MouthOpen)
     }
 
     private fun startNextChallenge() {
@@ -208,6 +230,7 @@ class LivenessDetectionActivity : AppCompatActivity() {
             finishChallenge()
         }
         else {
+            textview_challenge_counter.text = 0.toString()
             when {
                 challengeOrder[challengeIndex] == 0 -> startBlinkChallenge()
                 challengeOrder[challengeIndex] == 1 -> startHeadShakeChallenge()
@@ -258,53 +281,33 @@ class LivenessDetectionActivity : AppCompatActivity() {
     }
 
     private fun finishChallenge() {
-        Toast.makeText(this, "Challenge completed!", Toast.LENGTH_SHORT).show()
         this.setResult(RESULT_OK)
-        finish()
+        cameraSource!!.takePicture(null, com.google.android.gms.vision.CameraSource.PictureCallback {
+            navigateBack(true, BitmapFactory.decodeByteArray(it, 0, it.size))
+        })
     }
 
     private fun challengeInstructions(instructions: LivenessEventProvider.LivenessEvent.Type) = when (instructions) {
         LivenessEventProvider.LivenessEvent.Type.Blink -> {
             textview_challenge_name.text = "Blink needed"
             textview_challenge_label.text = "Blink count"
-            this.numberOfChallengeNeeded = Random().nextInt(2)+3
             textview_challenge_needed.text = numberOfChallengeNeeded.toString()
         }
 
         LivenessEventProvider.LivenessEvent.Type.HeadShake -> {
             textview_challenge_name.text = "Headshake needed"
             textview_challenge_label.text = "Headshake count"
-            this.numberOfChallengeNeeded = 2
             textview_challenge_needed.text = numberOfChallengeNeeded.toString()
         }
 
         LivenessEventProvider.LivenessEvent.Type.MouthOpen -> {
             textview_challenge_name.text = "Mouth Open needed"
             textview_challenge_label.text = "Mouth Open count"
-            this.numberOfChallengeNeeded = Random().nextInt(2)+3
             textview_challenge_needed.text = numberOfChallengeNeeded.toString()
         }
 
         else -> {
 
-        }
-    }
-
-
-    fun requestPermission() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.CAMERA
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA),
-                0
-            )
         }
     }
 }

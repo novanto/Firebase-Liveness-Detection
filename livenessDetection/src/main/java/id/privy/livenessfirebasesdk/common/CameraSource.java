@@ -15,6 +15,9 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
 
+import com.google.android.gms.vision.CameraSource.ShutterCallback;
+import com.google.android.gms.vision.CameraSource.PictureCallback;
+
 import com.google.android.gms.common.images.Size;
 
 import java.io.IOException;
@@ -710,8 +713,42 @@ public class CameraSource {
         }
     }
 
+    public void takePicture(ShutterCallback shutter, PictureCallback jpeg) {
+        if (camera != null) {
+            PictureStartCallback startCallback = new PictureStartCallback();
+            startCallback.mDelegate = shutter;
+            PictureDoneCallback doneCallback = new PictureDoneCallback();
+            doneCallback.mDelegate = jpeg;
+            camera.takePicture(startCallback, null, null, doneCallback);
+        }
+    }
+
     /** Cleans up graphicOverlay and child classes can do their cleanups as well . */
     private void cleanScreen() {
         graphicOverlay.clear();
     }
+
+    private class PictureStartCallback implements Camera.ShutterCallback {
+        private ShutterCallback mDelegate;
+
+        @Override
+        public void onShutter() {
+            if (mDelegate != null) {
+                mDelegate.onShutter();
+            }
+        }
+    }
+
+    private class PictureDoneCallback implements Camera.PictureCallback {
+        private PictureCallback mDelegate;
+
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+            if (mDelegate != null) {
+                mDelegate.onPictureTaken(data);
+            }
+        }
+    }
+
+
 }
