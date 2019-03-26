@@ -33,7 +33,7 @@ publish {
     publishVersion = publishVersionID
 
     userOrg = 'novanto'
-    repoName = 'Firebase Liveness Detection'
+    repoName = 'Firebase-Liveness-Detection'
     desc = "Liveness Detection using Firebase SDK"
     website = 'https://github.com/novanto'
 }
@@ -42,6 +42,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     api 'com.android.support:appcompat-v7:28.0.0'
+    api 'com.android.support:support-v4:28.0.0'
 
     api "com.google.firebase:firebase-core:16.0.8"
     api 'com.google.firebase:firebase-ml-vision:19.0.3'
