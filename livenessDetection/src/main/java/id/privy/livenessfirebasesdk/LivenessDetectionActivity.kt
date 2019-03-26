@@ -2,12 +2,10 @@ package id.privy.livenessfirebasesdk
 
 import android.Manifest
 import android.arch.lifecycle.Observer
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
+import android.os.Handler
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
@@ -141,7 +139,7 @@ class LivenessDetectionActivity : AppCompatActivity() {
     fun navigateBack(success: Boolean, bitmap: Bitmap?) {
         if (bitmap != null) {
             if (success) {
-                LivenessApp.setCameraResultData(bitmap)
+                LivenessApp.setCameraResultData(BitmapUtils.processBitmap(bitmap))
                 finish()
             } else {
                 LivenessApp.setCameraResultData(null)
@@ -282,9 +280,15 @@ class LivenessDetectionActivity : AppCompatActivity() {
 
     private fun finishChallenge() {
         this.setResult(RESULT_OK)
-        cameraSource!!.takePicture(null, com.google.android.gms.vision.CameraSource.PictureCallback {
-            navigateBack(true, BitmapFactory.decodeByteArray(it, 0, it.size))
-        })
+        errorContainer.visibility = View.VISIBLE
+        container_challenge.visibility = View.GONE
+        textview_challenge_warning.text = "Liveness Detection Success! \n Please look at the camera"
+        Handler().postDelayed({
+            cameraSource!!.takePicture(null, com.google.android.gms.vision.CameraSource.PictureCallback {
+                navigateBack(true, BitmapFactory.decodeByteArray(it, 0, it.size))
+            }) }, 1000
+        )
+
     }
 
     private fun challengeInstructions(instructions: LivenessEventProvider.LivenessEvent.Type) = when (instructions) {

@@ -204,7 +204,7 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
                 val cBottomMouthY = face.getLandmark(FirebaseVisionFaceLandmark.MOUTH_BOTTOM)!!.position.y!!
                 val cLeftMouthY = face.getLandmark(FirebaseVisionFaceLandmark.MOUTH_LEFT)!!.position.y!!
                 val cRightMouthY = face.getLandmark(FirebaseVisionFaceLandmark.MOUTH_RIGHT)!!.position.y!!
-                val centerPointY = (cLeftMouthY + cRightMouthY) / 2 - 20
+                val centerPointY = (cLeftMouthY + cRightMouthY) / 2 - 15
 
                 val differenceY = centerPointY - cBottomMouthY
 

@@ -24,14 +24,16 @@ public class LivenessApp {
 
     public static void setCameraResultData(Bitmap bitmap){
         if (callback != null) {
-            if(bitmap != null){
+            if (bitmap != null) {
                 LivenessItem livenessItem = new LivenessItem();
                 livenessItem.setImageBitmap(bitmap);
                 callback.success(livenessItem);
-            }else{
+            }
+            else {
                 callback.failed(new Throwable("ImageBase Not Found"));
             }
-        }else{
+        }
+        else {
             callback.failed(new Throwable("Null Callback CameraLiveness"));
         }
     }

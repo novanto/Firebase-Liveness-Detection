@@ -74,12 +74,13 @@
             android:visibility="gone">
 
             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Face not match, please restart the challenge"
-                android:textColor="@android:color/holo_red_dark"
-                android:textSize="18sp" />
+                    android:id="@+id/textview_challenge_warning"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Face not match, please restart the challenge"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="18sp" />
         </LinearLayout>
     </RelativeLayout>
 
