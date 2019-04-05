@@ -81,7 +81,7 @@ public class CameraSource {
     // these aren't used outside of the method that creates them, they still must have hard
     // references maintained to them.
     private SurfaceTexture dummySurfaceTexture;
-    private final GraphicOverlay graphicOverlay;
+    private GraphicOverlay graphicOverlay;
 
     // True if a SurfaceTexture is being used for the preview, false if a SurfaceHolder is being
     // used for the preview.  We want to be compatible back to Gingerbread, but SurfaceTexture
@@ -115,8 +115,10 @@ public class CameraSource {
 
     public CameraSource(Activity activity, GraphicOverlay overlay) {
         this.activity = activity;
-        graphicOverlay = overlay;
-        graphicOverlay.clear();
+        if (overlay != null) {
+            graphicOverlay = overlay;
+            graphicOverlay.clear();
+        }
         processingRunnable = new FrameProcessingRunnable();
     }
 
@@ -725,7 +727,9 @@ public class CameraSource {
 
     /** Cleans up graphicOverlay and child classes can do their cleanups as well . */
     private void cleanScreen() {
-        graphicOverlay.clear();
+        if (graphicOverlay != null) {
+            graphicOverlay.clear();
+        }
     }
 
     private class PictureStartCallback implements Camera.ShutterCallback {

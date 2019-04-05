@@ -1,8 +1,12 @@
 package id.privy.livenessfirebasesdk.vision
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import com.google.android.gms.tasks.Task
+import com.google.android.gms.vision.Frame
+import com.google.android.gms.vision.face.Face
+import com.google.android.gms.vision.face.FaceDetector
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.ml.vision.face.FirebaseVisionFace
@@ -18,6 +22,11 @@ import id.privy.livenessfirebasesdk.event.LivenessEventProvider.LivenessEvent
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.IOException
+import android.util.SparseArray
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.anko.doAsync
+
 
 class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>() {
 
@@ -37,6 +46,17 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
 
     private var challengeOrder: ArrayList<Int> = ArrayList()
 
+    private var isSimpleLiveness = false
+
+    private lateinit var googleFaceDetector: FaceDetector
+
+    enum class Motion {
+        Left,
+        Right,
+        Up,
+        Down
+    }
+
     init {
         val options = FirebaseVisionFaceDetectorOptions.Builder()
                 .setMinFaceSize(0.30f)
@@ -46,7 +66,18 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
                 .enableTracking()
                 .build()
 
+
         detector = FirebaseVision.getInstance().getVisionFaceDetector(options)
+    }
+
+    fun isSimpleLiveness(isSimpleLiveness: Boolean, context: Context) {
+        this.isSimpleLiveness = isSimpleLiveness
+        googleFaceDetector = FaceDetector.Builder(context)
+                                        .setLandmarkType(FaceDetector.ALL_LANDMARKS)
+                                        .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
+                                        .setMode(FaceDetector.ACCURATE_MODE)
+                                        .setTrackingEnabled(true)
+                                        .build()
     }
 
     fun setVerificationStep(verificationStep: Int) {
@@ -72,28 +103,46 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
             frameMetadata: FrameMetadata,
             graphicOverlay: GraphicOverlay) {
 
-        GlobalScope.launch {
-            graphicOverlay.clear()
-            if (originalCameraImage != null) {
-                val imageGraphic = CameraImageGraphic(graphicOverlay, originalCameraImage)
-                graphicOverlay.add(imageGraphic)
-            }
-            for (i in faces.indices) {
-                val face = faces[i]
 
-                val cameraFacing = frameMetadata?.cameraFacing
-                val faceGraphic = FaceGraphic(graphicOverlay, face, cameraFacing)
-                graphicOverlay.add(faceGraphic)
+        if (!isSimpleLiveness) {
+            GlobalScope.launch {
+                for (i in faces.indices) {
+                    val face = faces[i]
 
-                if (verificationStep == 0) {
-                    processBlink(face)
-                } else if (verificationStep == 1) {
-                    processHeadShake(face)
-                } else if (verificationStep == 2) {
-                    processOpenMouth(face)
+                    val cameraFacing = frameMetadata?.cameraFacing
+                    val faceGraphic = FaceGraphic(graphicOverlay, face, cameraFacing)
+                    graphicOverlay.add(faceGraphic)
+
+
+                    when (verificationStep) {
+                        0 -> processBlink(face)
+                        1 -> processHeadShake(face)
+                        2 -> processOpenMouth(face)
+                    }
                 }
             }
-            graphicOverlay.postInvalidate()
+        }
+        else {
+            runBlocking {
+                GlobalScope.launch {
+                    graphicOverlay.clear()
+                    if (originalCameraImage != null) {
+                        val imageGraphic = CameraImageGraphic(graphicOverlay, originalCameraImage)
+                        graphicOverlay.add(imageGraphic)
+                    }
+
+                    val frame = Frame.Builder()
+                        .setBitmap(originalCameraImage)
+                        .build()
+                    val faces = googleFaceDetector.detect(frame)
+
+                    if (faces != null && faces.size() > 0) {
+                        val face = getFaceFromArray(faces)
+                        processHeadFacing(face, Motion.Left)
+                    }
+                }
+                delay(100L)
+            }
         }
     }
 
@@ -163,32 +212,64 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
      */
     private fun processHeadShake(face: FirebaseVisionFace) {
         val headEulerAngleY = face.headEulerAngleY
+        val event = LivenessEvent()
+        event.setType(LivenessEvent.Type.HeadShake)
 
         if (this.faceId == -1 || face.getTrackingId() == faceId) {
             if (headEulerAngleY <= DetectionThreshold.LEFT_HEAD_THRESHOLD) {
                 if (headState != 1) {
                     headState = 1
-                    val event = LivenessEvent()
-                    event.setType(LivenessEvent.Type.HeadShake)
                     LivenessEventProvider.post(event)
                 }
             } else if (headEulerAngleY >= DetectionThreshold.RIGHT_HEAD_THRESHOLD) {
                 if (headState != 2) {
                     headState = 2
-                    val event = LivenessEvent()
-                    event.setType(LivenessEvent.Type.HeadShake)
                     LivenessEventProvider.post(event)
                 }
             }
         }
         else {
             if (!isEventSent) {
-                val event = LivenessEvent()
                 event.setType(LivenessEvent.Type.NotMatch)
                 LivenessEventProvider.post(event)
                 isEventSent = true
             }
         }
+    }
+
+    private fun processHeadFacing(face: Face, motion: Motion) {
+        val headEulerAngleY = face.eulerY
+        val event = LivenessEvent()
+        event.setType(LivenessEvent.Type.HeadShake)
+        if (this.faceId == -1) {
+            if (headEulerAngleY <= DetectionThreshold.LEFT_HEAD_FACING_THRESHOLD && motion == Motion.Left) {
+                LivenessEventProvider.post(event)
+            }
+            else if (headEulerAngleY >= DetectionThreshold.RIGHT_HEAD_FACING_THRESHOLD  && motion == Motion.Right) {
+                LivenessEventProvider.post(event)
+            }
+        }
+        else {
+            if (!isEventSent) {
+                event.setType(LivenessEvent.Type.NotMatch)
+                LivenessEventProvider.post(event)
+                isEventSent = true
+            }
+        }
+    }
+
+    private fun getFaceFromArray(faceSparseArray: SparseArray<Face>): Face {
+        var i = 0
+        var isFace = false
+        while (!isFace) {
+            if (faceSparseArray.get(i) != null) {
+                isFace = true
+            } else {
+                i++
+            }
+        }
+
+        return faceSparseArray.get(i)
     }
 
     private fun processOpenMouth(face: FirebaseVisionFace?) {

@@ -18,7 +18,7 @@ public class LivenessApp {
 
     public void privyCameraLiveness(PrivyCameraLivenessCallBackListener callback) {
         this.callback = callback;
-        Intent i = new Intent(context, LivenessDetectionActivity.class);
+        Intent i = new Intent(context, SimpleLivenessActivity.class);
         context.startActivity(i);
     }
 
@@ -35,6 +35,12 @@ public class LivenessApp {
         }
         else {
             callback.failed(new Throwable("Null Callback CameraLiveness"));
+        }
+    }
+
+    public static void setDebugMode(boolean isDebug) {
+        if (!isDebug) {
+
         }
     }
 }

@@ -13,4 +13,8 @@ public class DetectionThreshold {
     public static final double OPEN_MOUTH_THRESHOLD = -50.0;
 
     public static final double CLOSED_MOUTH_THRESHOLD = -38.0;
+
+    public static final double LEFT_HEAD_FACING_THRESHOLD = -20.0;
+
+    public static final double RIGHT_HEAD_FACING_THRESHOLD = 20.0;
 }
