@@ -12,7 +12,9 @@ import android.widget.Toast
 import id.privy.livenessfirebasesdk.common.*
 import id.privy.livenessfirebasesdk.event.LivenessEventProvider
 import id.privy.livenessfirebasesdk.vision.VisionDetectionProcessor
+import id.privy.livenessfirebasesdk.vision.VisionDetectionProcessor.Motion
 import java.io.IOException
+import java.util.*
 
 class SimpleLivenessActivity : AppCompatActivity() {
 
@@ -25,6 +27,8 @@ class SimpleLivenessActivity : AppCompatActivity() {
     private var cameraSource: CameraSource? = null
 
     private var visionDetectionProcessor: VisionDetectionProcessor? = null
+
+    private var success = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,8 +79,28 @@ class SimpleLivenessActivity : AppCompatActivity() {
             cameraSource!!.setFacing(CameraSource.CAMERA_FACING_FRONT)
         }
 
+        val motion = Motion.values()[Random().nextInt(Motion.values().size)]
+
+        when (motion) {
+            Motion.Left -> {
+                Toast.makeText(this, "Look Left", Toast.LENGTH_SHORT).show()
+            }
+
+            Motion.Right -> {
+                Toast.makeText(this, "Look Right", Toast.LENGTH_SHORT).show()
+            }
+
+            Motion.Up -> {
+                Toast.makeText(this, "Look Up", Toast.LENGTH_SHORT).show()
+            }
+
+            Motion.Down -> {
+                Toast.makeText(this, "Look Down", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         visionDetectionProcessor = VisionDetectionProcessor()
-        visionDetectionProcessor!!.isSimpleLiveness(true, this)
+        visionDetectionProcessor!!.isSimpleLiveness(true, this, motion)
 
         cameraSource!!.setMachineLearningFrameProcessor(visionDetectionProcessor)
     }
@@ -114,10 +138,16 @@ class SimpleLivenessActivity : AppCompatActivity() {
     }
 
     private fun onHeadShakeEvent() {
-        Toast.makeText(this, "Liveness Detection Success! \n Please look at the camera", Toast.LENGTH_SHORT).show()
-        Handler().postDelayed({
-            finish()
-        }, 2000)
+        if (!success) {
+            success = true
+            Toast.makeText(this, "Liveness Detection Success! \n Please look at the camera",
+                Toast.LENGTH_SHORT).show()
+            Handler().postDelayed({
+                cameraSource!!.takePicture(null, com.google.android.gms.vision.CameraSource.PictureCallback {
+                    navigateBack(true, BitmapFactory.decodeByteArray(it, 0, it.size))
+                })
+            }, 1000)
+        }
     }
 
 }

@@ -3,6 +3,7 @@ package id.privy.livenessfirebasesdk.vision
 import android.graphics.Bitmap
 import android.support.annotation.GuardedBy
 import com.google.android.gms.tasks.Task
+import com.google.android.gms.vision.Frame
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata
 import id.privy.livenessfirebasesdk.common.BitmapUtils
@@ -47,7 +48,7 @@ abstract class VisionProcessorBase<T> : VisionImageProcessor {
     // Bitmap version
     override fun process(bitmap: Bitmap, graphicOverlay: GraphicOverlay) {
         detectInVisionImage(null, FirebaseVisionImage.fromBitmap(bitmap), null,
-                graphicOverlay)/* bitmap */
+                graphicOverlay, Frame.Builder().setBitmap(bitmap).build())/* bitmap */
     }
 
     @Synchronized
@@ -72,21 +73,25 @@ abstract class VisionProcessorBase<T> : VisionImageProcessor {
                 .build()
 
         val bitmap = BitmapUtils.getBitmap(data, frameMetadata)
+        val frame = Frame.Builder().setBitmap(bitmap).build()
+
         detectInVisionImage(
                 bitmap, FirebaseVisionImage.fromByteBuffer(data, metadata), frameMetadata,
-                graphicOverlay)
+                graphicOverlay, frame)
     }
 
     private fun detectInVisionImage(
             originalCameraImage: Bitmap?,
             image: FirebaseVisionImage,
             metadata: FrameMetadata?,
-            graphicOverlay: GraphicOverlay) {
+            graphicOverlay: GraphicOverlay,
+            frame: Frame) {
         detectInImage(image)
                 .addOnSuccessListener { results ->
                     this@VisionProcessorBase.onSuccess(originalCameraImage, results,
                             metadata!!,
-                            graphicOverlay)
+                            graphicOverlay,
+                            frame)
                     processLatestImage(graphicOverlay)
                 }
                 .addOnFailureListener { e -> this@VisionProcessorBase.onFailure(e) }
@@ -106,7 +111,8 @@ abstract class VisionProcessorBase<T> : VisionImageProcessor {
             originalCameraImage: Bitmap?,
             results: T,
             frameMetadata: FrameMetadata,
-            graphicOverlay: GraphicOverlay)
+            graphicOverlay: GraphicOverlay,
+            frame: Frame)
 
     protected abstract fun onFailure(e: Exception)
 }

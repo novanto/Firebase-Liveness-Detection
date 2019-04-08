@@ -26,6 +26,7 @@ import android.util.SparseArray
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.anko.doAsync
+import com.google.android.gms.vision.face.Landmark
 
 
 class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>() {
@@ -54,30 +55,33 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
         Left,
         Right,
         Up,
-        Down
+        Down;
     }
+
+    private lateinit var motion: Motion
 
     init {
         val options = FirebaseVisionFaceDetectorOptions.Builder()
                 .setMinFaceSize(0.30f)
                 .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
                 .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_LANDMARKS)
-                .setPerformanceMode(FirebaseVisionFaceDetectorOptions.FAST)
+                .setPerformanceMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
                 .enableTracking()
                 .build()
-
 
         detector = FirebaseVision.getInstance().getVisionFaceDetector(options)
     }
 
-    fun isSimpleLiveness(isSimpleLiveness: Boolean, context: Context) {
+    fun isSimpleLiveness(isSimpleLiveness: Boolean, context: Context, motion: Motion) {
         this.isSimpleLiveness = isSimpleLiveness
         googleFaceDetector = FaceDetector.Builder(context)
                                         .setLandmarkType(FaceDetector.ALL_LANDMARKS)
                                         .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                                         .setMode(FaceDetector.ACCURATE_MODE)
-                                        .setTrackingEnabled(true)
+                                        .setProminentFaceOnly(true)
+                                        .setTrackingEnabled(false)
                                         .build()
+        this.motion = motion
     }
 
     fun setVerificationStep(verificationStep: Int) {
@@ -86,6 +90,9 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
 
     override fun stop() {
         try {
+            if (isSimpleLiveness && googleFaceDetector != null) {
+                googleFaceDetector.release()
+            }
             detector.close()
         } catch (e: IOException) {
             Log.e(TAG, "Exception thrown while trying to close Face Detector: $e")
@@ -101,7 +108,8 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
             originalCameraImage: Bitmap?,
             faces: List<FirebaseVisionFace>,
             frameMetadata: FrameMetadata,
-            graphicOverlay: GraphicOverlay) {
+            graphicOverlay: GraphicOverlay,
+            frame: Frame) {
 
 
         if (!isSimpleLiveness) {
@@ -126,22 +134,23 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
             runBlocking {
                 GlobalScope.launch {
                     graphicOverlay.clear()
-                    if (originalCameraImage != null) {
-                        val imageGraphic = CameraImageGraphic(graphicOverlay, originalCameraImage)
-                        graphicOverlay.add(imageGraphic)
-                    }
+                    if (googleFaceDetector.isOperational) {
+                        if (originalCameraImage != null) {
 
-                    val frame = Frame.Builder()
-                        .setBitmap(originalCameraImage)
-                        .build()
-                    val faces = googleFaceDetector.detect(frame)
+                            val imageGraphic = CameraImageGraphic(graphicOverlay, originalCameraImage)
+                            graphicOverlay.add(imageGraphic)
+                        }
 
-                    if (faces != null && faces.size() > 0) {
-                        val face = getFaceFromArray(faces)
-                        processHeadFacing(face, Motion.Left)
+
+                        val faces = googleFaceDetector.detect(frame)
+
+                        if (faces != null && faces.size() > 0) {
+                            val face = getFaceFromArray(faces)
+                            processHeadFacing(face, motion)
+                        }
                     }
                 }
-                delay(100L)
+                delay(300L)
             }
         }
     }
@@ -242,11 +251,32 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
         val event = LivenessEvent()
         event.setType(LivenessEvent.Type.HeadShake)
         if (this.faceId == -1) {
-            if (headEulerAngleY <= DetectionThreshold.LEFT_HEAD_FACING_THRESHOLD && motion == Motion.Left) {
-                LivenessEventProvider.post(event)
-            }
-            else if (headEulerAngleY >= DetectionThreshold.RIGHT_HEAD_FACING_THRESHOLD  && motion == Motion.Right) {
-                LivenessEventProvider.post(event)
+            when (motion) {
+                Motion.Left -> {
+                    Log.e(TAG, "$headEulerAngleY")
+                    if (headEulerAngleY <= DetectionThreshold.LEFT_HEAD_FACING_THRESHOLD) {
+                        LivenessEventProvider.post(event)
+                    }
+                }
+
+                Motion.Right -> {
+                    Log.e(TAG, "$headEulerAngleY")
+                    if (headEulerAngleY >= DetectionThreshold.RIGHT_HEAD_FACING_THRESHOLD) {
+                        LivenessEventProvider.post(event)
+                    }
+                }
+
+                Motion.Up -> {
+                    if (upData(face)) {
+                        LivenessEventProvider.post(event)
+                    }
+                }
+
+                Motion.Down -> {
+                    if (upData(face)) {
+                        LivenessEventProvider.post(event)
+                    }
+                }
             }
         }
         else {
@@ -317,6 +347,71 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
     fun setChallengeOrder(challengeOrder: ArrayList<Int>) {
         this.challengeOrder = challengeOrder
         this.verificationStep = challengeOrder.get(0)
+    }
+
+    private fun upData(face: Face?): Boolean {
+        if (face != null) {
+            val earPosition = getEarPosition(face)
+            val eyePosition = getEyePosition(face)
+            Log.e(TAG, "$earPosition")
+
+            return if (eyePosition.toDouble() == 0.0 || earPosition.toDouble() == 0.0) {
+                false
+            } else {
+                eyePosition - earPosition > 20
+            }
+        } else {
+            return false
+        }
+    }
+
+
+    private fun getEarPosition(face: Face): Float {
+        var leftEar: Landmark? = null
+        var rightEar: Landmark? = null
+
+        for (landmark:Landmark in face.landmarks) {
+            if (landmark.type == Landmark.LEFT_EAR) {
+                leftEar = landmark
+            }
+            else if (landmark.type == Landmark.RIGHT_EAR) {
+                rightEar = landmark
+            }
+        }
+
+        return if (leftEar == null && rightEar == null) {
+            0f
+        } else if (leftEar != null && rightEar == null) {
+            leftEar.position.y
+        } else if (leftEar == null && rightEar != null) {
+            rightEar.position.y
+        } else {
+            rightEar!!.position.y + leftEar!!.position.y / 2
+        }
+    }
+
+    private fun getEyePosition(face: Face): Float {
+        var leftEye: Landmark? = null
+        var rightEye: Landmark? = null
+
+        for (landmark:Landmark in face.landmarks) {
+            if (landmark.type == Landmark.LEFT_EYE) {
+                leftEye = landmark
+            }
+            else if (landmark.type == Landmark.RIGHT_EYE) {
+                rightEye = landmark
+            }
+        }
+
+        return if (leftEye == null && rightEye == null) {
+            0f
+        } else if (leftEye != null && rightEye == null) {
+            leftEye.position.y
+        } else if (leftEye == null && rightEye != null) {
+            rightEye.position.y
+        } else {
+            rightEye!!.position.y + leftEye!!.position.y / 2
+        }
     }
 
     companion object {
