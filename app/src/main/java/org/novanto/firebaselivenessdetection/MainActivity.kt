@@ -13,10 +13,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val livenessApp = LivenessApp(this)
+        val livenessApp = LivenessApp.Builder(this).setDebugMode(false).setSuccessText("Yes!").build()
 
         buttonStart.setOnClickListener {
-            livenessApp.privyCameraLiveness(object : PrivyCameraLivenessCallBackListener {
+            livenessApp.start(object : PrivyCameraLivenessCallBackListener {
 
                 override fun success(livenessItem: LivenessItem?) {
                     if (livenessItem != null) {

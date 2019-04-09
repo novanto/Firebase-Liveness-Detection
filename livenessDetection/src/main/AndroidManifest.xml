@@ -16,8 +16,9 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".SimpleLivenessActivity">
-        </activity>
+        <activity android:name=".SimpleLivenessActivity"
+                  android:screenOrientation="portrait"
+                  android:theme="@style/FullScreen"/>
         <activity
                 android:name=".LivenessDetectionActivity"
                 android:label="@string/app_name"

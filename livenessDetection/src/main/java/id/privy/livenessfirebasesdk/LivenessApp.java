@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import id.privy.livenessfirebasesdk.common.Constant;
 import id.privy.livenessfirebasesdk.entity.LivenessItem;
 import id.privy.livenessfirebasesdk.listener.PrivyCameraLivenessCallBackListener;
 
@@ -13,18 +14,21 @@ public class LivenessApp {
 
     private Context context;
 
-    public LivenessApp(Context context) {
-        this.context = context;
-    }
+    private Bundle bundle;
 
-    private LivenessApp(boolean isDebug, String successText, String instructions) {
+    private LivenessApp(Context context, boolean isDebug, String successText, String instructions) {
         Bundle bundle = new Bundle();
-
+        bundle.putBoolean(Constant.Keys.IS_DEBUG, isDebug);
+        bundle.putString(Constant.Keys.SUCCESS_TEXT, successText);
+        bundle.putString(Constant.Keys.INSTRUCTION_TEXT, instructions);
+        this.context = context;
+        this.bundle = bundle;
     }
 
-    private void privyCameraLiveness(PrivyCameraLivenessCallBackListener callback, Bundle bundle) {
+    public void start(PrivyCameraLivenessCallBackListener callback) {
         this.callback = callback;
         Intent i = new Intent(context, SimpleLivenessActivity.class);
+        i.putExtras(bundle);
         context.startActivity(i);
     }
 
@@ -77,7 +81,7 @@ public class LivenessApp {
         }
 
         public LivenessApp build() {
-            return new LivenessApp(isDebug, successText, instructions);
+            return new LivenessApp(context, isDebug, successText, instructions);
         }
 
     }

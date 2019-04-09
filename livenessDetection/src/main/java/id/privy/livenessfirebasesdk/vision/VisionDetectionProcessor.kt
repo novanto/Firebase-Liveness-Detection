@@ -41,9 +41,13 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
 
     private var isSimpleLiveness = false
 
+    private var isDebug = false
+
+    private var isChallengeDone = false
+
     enum class Motion {
-        Up,
-        Down,
+//        Up,
+//        Down,
         Left,
         Right;
     }
@@ -67,8 +71,16 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
         this.motion = motion
     }
 
+    fun isDebugMode(isDebug: Boolean) {
+        this.isDebug = isDebug
+    }
+
     fun setVerificationStep(verificationStep: Int) {
         this.verificationStep = verificationStep
+    }
+
+    fun setChallengeDone(isChallengeDone: Boolean) {
+        this.isChallengeDone = isChallengeDone
     }
 
     override fun stop() {
@@ -101,10 +113,11 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
                 for (i in faces.indices) {
                     val face = faces[i]
 
-                    val cameraFacing = frameMetadata.cameraFacing
-                    val faceGraphic = FaceGraphic(graphicOverlay, face, cameraFacing)
-                    graphicOverlay.add(faceGraphic)
-
+                    if (isDebug) {
+                        val cameraFacing = frameMetadata.cameraFacing
+                        val faceGraphic = FaceGraphic(graphicOverlay, face, cameraFacing)
+                        graphicOverlay.add(faceGraphic)
+                    }
 
                     when (verificationStep) {
                         0 -> processBlink(face)
@@ -123,7 +136,19 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
 
                 for (i in faces.indices) {
                     val face = faces[i]
-                    processHeadFacing(face, motion)
+
+                    if (isDebug) {
+                        val cameraFacing = frameMetadata.cameraFacing
+                        val faceGraphic = FaceGraphic(graphicOverlay, face, cameraFacing)
+                        graphicOverlay.add(faceGraphic)
+                    }
+
+                    if (isChallengeDone) {
+                        processDefaultPosition(face)
+                    }
+                    else {
+                        processHeadFacing(face, motion)
+                    }
                 }
             }
         }
@@ -240,17 +265,17 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
                     }
                 }
 
-                Motion.Up -> {
-                    if (upData(face)) {
-                        LivenessEventProvider.post(event)
-                    }
-                }
-
-                Motion.Down -> {
-                    if (upData(face)) {
-                        LivenessEventProvider.post(event)
-                    }
-                }
+//                Motion.Up -> {
+//                    if (upData(face)) {
+//                        LivenessEventProvider.post(event)
+//                    }
+//                }
+//
+//                Motion.Down -> {
+//                    if (upData(face)) {
+//                        LivenessEventProvider.post(event)
+//                    }
+//                }
             }
         }
         else {
@@ -259,6 +284,17 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
                 LivenessEventProvider.post(event)
                 isEventSent = true
             }
+        }
+    }
+
+    private fun processDefaultPosition(face: FirebaseVisionFace) {
+        val headEulerAngleY = face.headEulerAngleY
+        val event = LivenessEvent()
+        event.setType(LivenessEvent.Type.Default)
+
+        if (headEulerAngleY < 5 && headEulerAngleY > -5 && !isEventSent) {
+            isEventSent = true
+            LivenessEventProvider.post(event)
         }
     }
 

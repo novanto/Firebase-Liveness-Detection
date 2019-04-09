@@ -30,12 +30,22 @@ class SimpleLivenessActivity : AppCompatActivity() {
 
     private var success = false
 
+    private lateinit var successText: String
+
+    private var isDebug = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_simple_liveness)
 
         preview = findViewById(R.id.cameraPreview)
         graphicOverlay = findViewById(R.id.faceOverlay)
+
+        if (intent.extras != null) {
+            val b = intent.extras
+            successText = b.getString(Constant.Keys.SUCCESS_TEXT, getString(R.string.success_text))
+            isDebug = b.getBoolean(Constant.Keys.IS_DEBUG, false)
+        }
 
         if (PermissionUtil.with(this).isCameraPermissionGranted) {
             createCameraSource()
@@ -50,6 +60,10 @@ class SimpleLivenessActivity : AppCompatActivity() {
                 when {
                     it.getType() == LivenessEventProvider.LivenessEvent.Type.HeadShake -> {
                         onHeadShakeEvent()
+                    }
+
+                    it.getType() == LivenessEventProvider.LivenessEvent.Type.Default -> {
+                        onDefaultEvent()
                     }
                 }
             }
@@ -106,6 +120,7 @@ class SimpleLivenessActivity : AppCompatActivity() {
 
         visionDetectionProcessor = VisionDetectionProcessor()
         visionDetectionProcessor!!.isSimpleLiveness(true, this, motion)
+        visionDetectionProcessor!!.isDebugMode(isDebug)
 
         cameraSource!!.setMachineLearningFrameProcessor(visionDetectionProcessor)
     }
@@ -145,13 +160,20 @@ class SimpleLivenessActivity : AppCompatActivity() {
     private fun onHeadShakeEvent() {
         if (!success) {
             success = true
-            Toast.makeText(this, "Liveness Detection Success! \n Please look at the camera",
+            Toast.makeText(this, successText,
                 Toast.LENGTH_SHORT).show()
+
+            visionDetectionProcessor!!.setChallengeDone(true)
+        }
+    }
+
+    private fun onDefaultEvent() {
+        if (success) {
             Handler().postDelayed({
                 cameraSource!!.takePicture(null, com.google.android.gms.vision.CameraSource.PictureCallback {
                     navigateBack(true, BitmapFactory.decodeByteArray(it, 0, it.size))
                 })
-            }, 2500)
+            }, 500)
         }
     }
 
