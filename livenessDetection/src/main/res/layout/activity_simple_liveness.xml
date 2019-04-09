@@ -7,6 +7,7 @@
         android:background="@android:color/black"
         tools:context=".SimpleLivenessActivity">
 
+
     <id.privy.livenessfirebasesdk.common.CameraSourcePreview
             android:id="@+id/cameraPreview"
             android:layout_width="match_parent"
@@ -22,4 +23,9 @@
                 android:layout_alignParentLeft="true"/>
     </id.privy.livenessfirebasesdk.common.CameraSourcePreview>
 
+    <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:background="@mipmap/background_selfie"/>
 </RelativeLayout>

@@ -57,6 +57,11 @@ class SimpleLivenessActivity : AppCompatActivity() {
         })
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        createCameraSource()
+    }
+
     override fun onResume() {
         super.onResume()
         startCameraSource()
@@ -65,6 +70,7 @@ class SimpleLivenessActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         preview?.stop()
+        LivenessEventProvider.getEventLiveData().postValue(null)
     }
 
     override fun onDestroy() {
@@ -90,13 +96,13 @@ class SimpleLivenessActivity : AppCompatActivity() {
                 Toast.makeText(this, "Look Right", Toast.LENGTH_SHORT).show()
             }
 
-            Motion.Up -> {
-                Toast.makeText(this, "Look Up", Toast.LENGTH_SHORT).show()
-            }
-
-            Motion.Down -> {
-                Toast.makeText(this, "Look Down", Toast.LENGTH_SHORT).show()
-            }
+//            Motion.Up -> {
+//                Toast.makeText(this, "Look Up", Toast.LENGTH_SHORT).show()
+//            }
+//
+//            Motion.Down -> {
+//                Toast.makeText(this, "Look Down", Toast.LENGTH_SHORT).show()
+//            }
         }
 
         visionDetectionProcessor = VisionDetectionProcessor()
@@ -146,7 +152,7 @@ class SimpleLivenessActivity : AppCompatActivity() {
                 cameraSource!!.takePicture(null, com.google.android.gms.vision.CameraSource.PictureCallback {
                     navigateBack(true, BitmapFactory.decodeByteArray(it, 0, it.size))
                 })
-            }, 1000)
+            }, 2500)
         }
     }
 

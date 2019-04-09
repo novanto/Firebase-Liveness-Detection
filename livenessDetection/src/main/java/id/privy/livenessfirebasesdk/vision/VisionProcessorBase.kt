@@ -48,7 +48,7 @@ abstract class VisionProcessorBase<T> : VisionImageProcessor {
     // Bitmap version
     override fun process(bitmap: Bitmap, graphicOverlay: GraphicOverlay) {
         detectInVisionImage(null, FirebaseVisionImage.fromBitmap(bitmap), null,
-                graphicOverlay, Frame.Builder().setBitmap(bitmap).build())/* bitmap */
+                graphicOverlay)/* bitmap */
     }
 
     @Synchronized
@@ -73,25 +73,21 @@ abstract class VisionProcessorBase<T> : VisionImageProcessor {
                 .build()
 
         val bitmap = BitmapUtils.getBitmap(data, frameMetadata)
-        val frame = Frame.Builder().setBitmap(bitmap).build()
-
         detectInVisionImage(
                 bitmap, FirebaseVisionImage.fromByteBuffer(data, metadata), frameMetadata,
-                graphicOverlay, frame)
+                graphicOverlay)
     }
 
     private fun detectInVisionImage(
             originalCameraImage: Bitmap?,
             image: FirebaseVisionImage,
             metadata: FrameMetadata?,
-            graphicOverlay: GraphicOverlay,
-            frame: Frame) {
+            graphicOverlay: GraphicOverlay) {
         detectInImage(image)
                 .addOnSuccessListener { results ->
                     this@VisionProcessorBase.onSuccess(originalCameraImage, results,
                             metadata!!,
-                            graphicOverlay,
-                            frame)
+                            graphicOverlay)
                     processLatestImage(graphicOverlay)
                 }
                 .addOnFailureListener { e -> this@VisionProcessorBase.onFailure(e) }
@@ -111,8 +107,7 @@ abstract class VisionProcessorBase<T> : VisionImageProcessor {
             originalCameraImage: Bitmap?,
             results: T,
             frameMetadata: FrameMetadata,
-            graphicOverlay: GraphicOverlay,
-            frame: Frame)
+            graphicOverlay: GraphicOverlay)
 
     protected abstract fun onFailure(e: Exception)
 }
