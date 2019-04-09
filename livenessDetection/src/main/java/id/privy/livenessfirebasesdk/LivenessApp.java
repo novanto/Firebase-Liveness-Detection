@@ -3,6 +3,7 @@ package id.privy.livenessfirebasesdk;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.os.Bundle;
 import id.privy.livenessfirebasesdk.entity.LivenessItem;
 import id.privy.livenessfirebasesdk.listener.PrivyCameraLivenessCallBackListener;
 
@@ -16,7 +17,12 @@ public class LivenessApp {
         this.context = context;
     }
 
-    public void privyCameraLiveness(PrivyCameraLivenessCallBackListener callback) {
+    private LivenessApp(boolean isDebug, String successText, String instructions) {
+        Bundle bundle = new Bundle();
+
+    }
+
+    private void privyCameraLiveness(PrivyCameraLivenessCallBackListener callback, Bundle bundle) {
         this.callback = callback;
         Intent i = new Intent(context, SimpleLivenessActivity.class);
         context.startActivity(i);
@@ -38,9 +44,42 @@ public class LivenessApp {
         }
     }
 
-    public static void setDebugMode(boolean isDebug) {
-        if (!isDebug) {
+    public static class Builder {
 
+        private Context context;
+
+        private boolean isDebug;
+
+        private String successText;
+
+        private String instructions;
+
+        public Builder(Context context) {
+            this.context = context;
+            this.isDebug = false;
+            this.successText = context.getString(R.string.success_text);
+            this.successText = context.getString(R.string.instructions);
         }
+
+        public LivenessApp.Builder setDebugMode(boolean isDebug) {
+            this.isDebug = isDebug;
+            return this;
+        }
+
+        public LivenessApp.Builder setSuccessText(String successText) {
+            this.successText = successText;
+            return this;
+        }
+
+        public LivenessApp.Builder setInstructions(String instructions) {
+            this.instructions = instructions;
+            return this;
+        }
+
+        public LivenessApp build() {
+            return new LivenessApp(isDebug, successText, instructions);
+        }
+
     }
+
 }

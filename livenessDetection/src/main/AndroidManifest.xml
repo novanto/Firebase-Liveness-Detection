@@ -12,17 +12,17 @@
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
+            android:screenOrientation="portrait"
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".SimpleLivenessActivity">
         </activity>
-
         <activity
                 android:name=".LivenessDetectionActivity"
                 android:label="@string/app_name"
                 android:screenOrientation="portrait"
-                android:theme="@style/Theme.AppCompat.NoActionBar">
+                android:theme="@style/FullScreen">
         </activity>
     </application>
 

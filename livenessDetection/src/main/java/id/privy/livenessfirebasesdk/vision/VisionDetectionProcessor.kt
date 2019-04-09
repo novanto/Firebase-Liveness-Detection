@@ -3,6 +3,7 @@ package id.privy.livenessfirebasesdk.vision
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import com.google.android.gms.tasks.Task
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.ml.vision.face.FirebaseVisionFace
@@ -18,10 +19,6 @@ import id.privy.livenessfirebasesdk.event.LivenessEventProvider.LivenessEvent
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.IOException
-import android.util.SparseArray
-import com.google.android.gms.tasks.Task
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 
 
 class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>() {
@@ -45,6 +42,8 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
     private var isSimpleLiveness = false
 
     enum class Motion {
+        Up,
+        Down,
         Left,
         Right;
     }
@@ -241,17 +240,17 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
                     }
                 }
 
-//                Motion.Up -> {
-//                    if (upData(face)) {
-//                        LivenessEventProvider.post(event)
-//                    }
-//                }
-//
-//                Motion.Down -> {
-//                    if (upData(face)) {
-//                        LivenessEventProvider.post(event)
-//                    }
-//                }
+                Motion.Up -> {
+                    if (upData(face)) {
+                        LivenessEventProvider.post(event)
+                    }
+                }
+
+                Motion.Down -> {
+                    if (upData(face)) {
+                        LivenessEventProvider.post(event)
+                    }
+                }
             }
         }
         else {
@@ -314,7 +313,8 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
         if (face != null) {
             val earPosition = getEarPosition(face)
             val eyePosition = getEyePosition(face)
-            Log.e(TAG, "$earPosition")
+            Log.e(TAG, "Ear position: $earPosition")
+            Log.e(TAG, "Eye position : $eyePosition")
 
             return if (eyePosition.toDouble() == 0.0 || earPosition.toDouble() == 0.0) {
                 false

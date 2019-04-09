@@ -37,7 +37,6 @@ class SimpleLivenessActivity : AppCompatActivity() {
         preview = findViewById(R.id.cameraPreview)
         graphicOverlay = findViewById(R.id.faceOverlay)
 
-
         if (PermissionUtil.with(this).isCameraPermissionGranted) {
             createCameraSource()
             startHeadShakeChallenge()
@@ -95,7 +94,7 @@ class SimpleLivenessActivity : AppCompatActivity() {
             Motion.Right -> {
                 Toast.makeText(this, "Look Right", Toast.LENGTH_SHORT).show()
             }
-
+//
 //            Motion.Up -> {
 //                Toast.makeText(this, "Look Up", Toast.LENGTH_SHORT).show()
 //            }
