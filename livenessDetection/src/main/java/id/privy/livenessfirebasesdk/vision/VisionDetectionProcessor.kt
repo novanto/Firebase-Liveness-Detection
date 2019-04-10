@@ -16,8 +16,6 @@ import id.privy.livenessfirebasesdk.common.FrameMetadata
 import id.privy.livenessfirebasesdk.common.GraphicOverlay
 import id.privy.livenessfirebasesdk.event.LivenessEventProvider
 import id.privy.livenessfirebasesdk.event.LivenessEventProvider.LivenessEvent
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.io.IOException
 
 
@@ -103,52 +101,48 @@ class VisionDetectionProcessor : VisionProcessorBase<List<FirebaseVisionFace>>()
             graphicOverlay: GraphicOverlay) {
         graphicOverlay.clear()
         if (!isSimpleLiveness) {
-            GlobalScope.launch {
-                if (originalCameraImage != null) {
+            if (originalCameraImage != null) {
 
-                    val imageGraphic = CameraImageGraphic(graphicOverlay, originalCameraImage)
-                    graphicOverlay.add(imageGraphic)
+                val imageGraphic = CameraImageGraphic(graphicOverlay, originalCameraImage)
+                graphicOverlay.add(imageGraphic)
+            }
+
+            for (i in faces.indices) {
+                val face = faces[i]
+
+                if (isDebug) {
+                    val cameraFacing = frameMetadata.cameraFacing
+                    val faceGraphic = FaceGraphic(graphicOverlay, face, cameraFacing)
+                    graphicOverlay.add(faceGraphic)
                 }
 
-                for (i in faces.indices) {
-                    val face = faces[i]
-
-                    if (isDebug) {
-                        val cameraFacing = frameMetadata.cameraFacing
-                        val faceGraphic = FaceGraphic(graphicOverlay, face, cameraFacing)
-                        graphicOverlay.add(faceGraphic)
-                    }
-
-                    when (verificationStep) {
-                        0 -> processBlink(face)
-                        1 -> processHeadShake(face)
-                        2 -> processOpenMouth(face)
-                    }
+                when (verificationStep) {
+                    0 -> processBlink(face)
+                    1 -> processHeadShake(face)
+                    2 -> processOpenMouth(face)
                 }
             }
         }
         else {
-            GlobalScope.launch {
-                if (originalCameraImage != null) {
-                    val imageGraphic = CameraImageGraphic(graphicOverlay, originalCameraImage)
-                    graphicOverlay.add(imageGraphic)
+            if (originalCameraImage != null) {
+                val imageGraphic = CameraImageGraphic(graphicOverlay, originalCameraImage)
+                graphicOverlay.add(imageGraphic)
+            }
+
+            for (i in faces.indices) {
+                val face = faces[i]
+
+                if (isDebug) {
+                    val cameraFacing = frameMetadata.cameraFacing
+                    val faceGraphic = FaceGraphic(graphicOverlay, face, cameraFacing)
+                    graphicOverlay.add(faceGraphic)
                 }
 
-                for (i in faces.indices) {
-                    val face = faces[i]
-
-                    if (isDebug) {
-                        val cameraFacing = frameMetadata.cameraFacing
-                        val faceGraphic = FaceGraphic(graphicOverlay, face, cameraFacing)
-                        graphicOverlay.add(faceGraphic)
-                    }
-
-                    if (isChallengeDone) {
-                        processDefaultPosition(face)
-                    }
-                    else {
-                        processHeadFacing(face, motion)
-                    }
+                if (isChallengeDone) {
+                    processDefaultPosition(face)
+                }
+                else {
+                    processHeadFacing(face, motion)
                 }
             }
         }

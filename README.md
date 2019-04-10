@@ -16,10 +16,16 @@ Add maven script
            }
        }
   
+Add your google-services.json file to the app  
+  
 Add this script to your app gradle file:  
-`implementation 'id.privy.livenessfirebasesdk:livenessDetection:0.0.2'`  
-  
-  
+    
+    dependencies {
+        implementation 'com.google.firebase:firebase-core:16.0.8'
+        implementation 'com.google.firebase:firebase-ml-vision:19.0.3'
+        implementation 'id.privy.livenessfirebasesdk:livenessDetection:0.0.5'
+    }    
+      
 Add builder to your activity to start  
 
     LivenessApp livenessApp = LivenessApp.Builder(this)  
