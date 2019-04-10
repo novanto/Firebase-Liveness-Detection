@@ -13,6 +13,7 @@ import id.privy.livenessfirebasesdk.common.*
 import id.privy.livenessfirebasesdk.event.LivenessEventProvider
 import id.privy.livenessfirebasesdk.vision.VisionDetectionProcessor
 import id.privy.livenessfirebasesdk.vision.VisionDetectionProcessor.Motion
+import kotlinx.android.synthetic.main.activity_simple_liveness.*
 import java.io.IOException
 import java.util.*
 
@@ -42,9 +43,10 @@ class SimpleLivenessActivity : AppCompatActivity() {
         graphicOverlay = findViewById(R.id.faceOverlay)
 
         if (intent.extras != null) {
-            val b = intent.extras
+            val b = intent.extras!!
             successText = b.getString(Constant.Keys.SUCCESS_TEXT, getString(R.string.success_text))
             isDebug = b.getBoolean(Constant.Keys.IS_DEBUG, false)
+            instructions.text = b.getString(Constant.Keys.INSTRUCTION_TEXT, getString(R.string.instructions))
         }
 
         if (PermissionUtil.with(this).isCameraPermissionGranted) {
