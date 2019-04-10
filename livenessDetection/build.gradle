@@ -1,10 +1,37 @@
-apply plugin: 'com.novoda.bintray-release'
-
 apply plugin: 'com.android.library'
 
 apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
+
+apply plugin: 'com.jfrog.bintray'
+
+apply plugin: 'com.github.dcendents.android-maven'
+
+ext {
+
+    bintrayRepo = "LivenessDetection"
+    bintrayName = "id.privy.livenessfirebasesdk"
+
+    publishedGroupId = 'id.privy.livenessfirebasesdk'
+    libraryName = 'livenessdetection'
+    artifact = 'livenessdetection'
+
+    libraryDescription = 'Lightweight liveness detection using Firebase'
+
+    siteUrl = 'https://github.com/novanto/Firebase-Liveness-Detection'
+    gitUrl = 'https://github.com/novanto/Firebase-Liveness-Detection.git'
+
+    libraryVersion = '0.0.1'
+
+    developerId = 'novanto'
+    developerName = 'Novanto Ji'
+    developerEmail = 'novanto.ji@gmail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
 
 android {
     compileSdkVersion 28
@@ -23,21 +50,6 @@ android {
     }
 }
 
-publish {
-    def groupProjectID = 'org.novanto.firebaseliveness'
-    def artifactProjectID = 'firebaseliveness'
-    def publishVersionID = '0.0.1'
-
-    groupId = groupProjectID
-    artifactId = artifactProjectID
-    publishVersion = publishVersionID
-
-    userOrg = 'novanto'
-    repoName = 'Firebase-Liveness-Detection'
-    desc = "Liveness Detection using Firebase SDK"
-    website = 'https://github.com/novanto'
-}
-
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -54,4 +66,9 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
+
+if (project.rootProject.file('local.properties').exists()) {
+    apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
+    apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
 }
