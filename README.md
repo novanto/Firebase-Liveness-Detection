@@ -5,8 +5,19 @@ Lightweight Liveness Detection using Firebase ML Kit - file size less than 5 Mb.
   
 # Implementation  
   
+Add maven script
+    
+       allprojects {
+           repositories {
+               jcenter()
+               maven {
+                    url 'https://dl.bintray.com/novanto/LivenessDetection'
+               }
+           }
+       }
+  
 Add this script to your app gradle file:  
-`compile 'id.privy.livenessfirebasesdk:livenessdetection:0.0.1'`  
+`implementation 'id.privy.livenessfirebasesdk:livenessDetection:0.0.2'`  
   
   
 Add builder to your activity to start  

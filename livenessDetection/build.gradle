@@ -14,15 +14,15 @@ ext {
     bintrayName = "id.privy.livenessfirebasesdk"
 
     publishedGroupId = 'id.privy.livenessfirebasesdk'
-    libraryName = 'livenessdetection'
-    artifact = 'livenessdetection'
+    libraryName = 'livenessDetection'
+    artifact = 'livenessDetection'
 
     libraryDescription = 'Lightweight liveness detection using Firebase'
 
     siteUrl = 'https://github.com/novanto/Firebase-Liveness-Detection'
     gitUrl = 'https://github.com/novanto/Firebase-Liveness-Detection.git'
 
-    libraryVersion = '0.0.1'
+    libraryVersion = '0.0.2'
 
     developerId = 'novanto'
     developerName = 'Novanto Ji'
