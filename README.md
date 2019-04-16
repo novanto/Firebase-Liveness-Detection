@@ -23,7 +23,7 @@ Add this script to your app gradle file:
     dependencies {
         implementation 'com.google.firebase:firebase-core:16.0.8'
         implementation 'com.google.firebase:firebase-ml-vision:19.0.3'
-        implementation 'id.privy.livenessfirebasesdk:livenessDetection:0.0.5'
+        implementation 'id.privy.livenessfirebasesdk:livenessDetection:0.0.6'
     }    
       
 Add builder to your activity to start  

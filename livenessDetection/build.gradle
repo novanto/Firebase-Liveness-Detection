@@ -22,7 +22,7 @@ ext {
     siteUrl = 'https://github.com/novanto/Firebase-Liveness-Detection'
     gitUrl = 'https://github.com/novanto/Firebase-Liveness-Detection.git'
 
-    libraryVersion = '0.0.5'
+    libraryVersion = '0.0.6'
 
     developerId = 'novanto'
     developerName = 'Novanto Ji'
