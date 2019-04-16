@@ -35,6 +35,8 @@ class SimpleLivenessActivity : AppCompatActivity() {
 
     private var isDebug = false
 
+    private lateinit var motionInstructions: Array<String>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_simple_liveness)
@@ -47,6 +49,7 @@ class SimpleLivenessActivity : AppCompatActivity() {
             successText = b.getString(Constant.Keys.SUCCESS_TEXT, getString(R.string.success_text))
             isDebug = b.getBoolean(Constant.Keys.IS_DEBUG, false)
             instructions.text = b.getString(Constant.Keys.INSTRUCTION_TEXT, getString(R.string.instructions))
+            motionInstructions = b.getStringArray(Constant.Keys.MOTION_INSTRUCTIONS)
         }
 
         if (PermissionUtil.with(this).isCameraPermissionGranted) {
@@ -104,11 +107,11 @@ class SimpleLivenessActivity : AppCompatActivity() {
 
         when (motion) {
             Motion.Left -> {
-                Toast.makeText(this, "Look Left", Toast.LENGTH_SHORT).show()
+                motionInstruction.text = this.motionInstructions[0]
             }
 
             Motion.Right -> {
-                Toast.makeText(this, "Look Right", Toast.LENGTH_SHORT).show()
+                motionInstruction.text = this.motionInstructions[1]
             }
 //
 //            Motion.Up -> {
@@ -162,8 +165,7 @@ class SimpleLivenessActivity : AppCompatActivity() {
     private fun onHeadShakeEvent() {
         if (!success) {
             success = true
-            Toast.makeText(this, successText,
-                Toast.LENGTH_SHORT).show()
+            motionInstruction.text = successText
 
             visionDetectionProcessor!!.setChallengeDone(true)
         }

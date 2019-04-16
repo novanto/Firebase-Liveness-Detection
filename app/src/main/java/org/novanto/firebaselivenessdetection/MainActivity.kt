@@ -13,7 +13,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val livenessApp = LivenessApp.Builder(this).setDebugMode(false).setSuccessText("Success taking photo!").setInstructions("Insert your instructions here").build()
+        val livenessApp = LivenessApp.Builder(this)
+            .setDebugMode(false)
+            .setMotionInstruction("Lihat ke kiri", "Lihat ke kanan")
+            .setSuccessText("Berhasil! Silahkan lihat ke kamera lagi untuk mengambil foto")
+            .setInstructions("Lihat ke kamera dan tempatkan wajah pada lingakaran hijau")
+            .build()
 
         buttonStart.setOnClickListener {
             livenessApp.start(object : PrivyCameraLivenessCallBackListener {

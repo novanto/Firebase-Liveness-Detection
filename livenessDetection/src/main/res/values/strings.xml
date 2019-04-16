@@ -2,4 +2,6 @@
     <string name="app_name">LivenessFirebaseSDK</string>
     <string name="success_text">Liveness Detection Success! \n Please look at the camera</string>
     <string name="instructions">Look at the camera and put your face on the circle</string>
+    <string name="motion_instruction_left">Look to the left</string>
+    <string name="motion_instruction_right">Look to the right</string>
 </resources>

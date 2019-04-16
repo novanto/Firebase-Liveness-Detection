@@ -16,17 +16,18 @@ public class LivenessApp {
 
     private Bundle bundle;
 
-    private LivenessApp(Context context, boolean isDebug, String successText, String instructions) {
+    private LivenessApp(Context context, boolean isDebug, String successText, String instructions, String[] motionInstructions) {
         Bundle bundle = new Bundle();
         bundle.putBoolean(Constant.Keys.IS_DEBUG, isDebug);
         bundle.putString(Constant.Keys.SUCCESS_TEXT, successText);
         bundle.putString(Constant.Keys.INSTRUCTION_TEXT, instructions);
+        bundle.putStringArray(Constant.Keys.MOTION_INSTRUCTIONS, motionInstructions);
         this.context = context;
         this.bundle = bundle;
     }
 
     public void start(PrivyCameraLivenessCallBackListener callback) {
-        this.callback = callback;
+        LivenessApp.callback = callback;
         Intent i = new Intent(context, SimpleLivenessActivity.class);
         i.putExtras(bundle);
         context.startActivity(i);
@@ -58,11 +59,15 @@ public class LivenessApp {
 
         private String instructions;
 
+        private String leftInstruction, rightInstruction;
+
         public Builder(Context context) {
             this.context = context;
             this.isDebug = false;
             this.successText = context.getString(R.string.success_text);
             this.successText = context.getString(R.string.instructions);
+            this.leftInstruction = context.getString(R.string.motion_instruction_left);
+            this.rightInstruction = context.getString(R.string.motion_instruction_right);
         }
 
         public LivenessApp.Builder setDebugMode(boolean isDebug) {
@@ -80,8 +85,15 @@ public class LivenessApp {
             return this;
         }
 
+        public LivenessApp.Builder setMotionInstruction(String leftInstruction, String rightInstruction) {
+            this.leftInstruction = leftInstruction;
+            this.rightInstruction = rightInstruction;
+            return this;
+        }
+
         public LivenessApp build() {
-            return new LivenessApp(context, isDebug, successText, instructions);
+            String[] motionInstructions = new String[]{leftInstruction, rightInstruction};
+            return new LivenessApp(context, isDebug, successText, instructions, motionInstructions);
         }
 
     }

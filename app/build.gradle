@@ -37,7 +37,8 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-    implementation 'id.privy.livenessfirebasesdk:livenessDetection:0.0.5'
+    implementation project(':livenessDetection')
+    //implementation 'id.privy.livenessfirebasesdk:livenessDetection:0.0.5'
 }
 
 apply plugin: 'com.google.gms.google-services'

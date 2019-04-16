@@ -16,7 +16,7 @@ Add maven script
            }
        }
   
-Add your google-services.json file to the app  
+Add your `google-services.json` file to the app  
   
 Add this script to your app gradle file:  
     
@@ -32,6 +32,7 @@ Add builder to your activity to start
     			 .setDebugMode(false) //to enable face landmark detection 
     			 .setSuccessText($SUCCESSTEXT) 
     			 .setInstructions($INSTRUCTIONS) 
+    			 .setMotionInstruction($LEFT_MOTION_INSTRUCTION", $RIGHT_MOTION_INSTRUCTION)
     			 .build()
 
 Initiate with callback
